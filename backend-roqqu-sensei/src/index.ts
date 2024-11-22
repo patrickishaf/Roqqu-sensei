@@ -1,7 +1,7 @@
-import express from "express";
-import cors from "cors";
-import { Server} from "socket.io";
-import http from "node:http";
+import {httpServer, runHttpServer} from "./server";
 
-const app = express();
-const httpServer = http.createServer(app)
+const main = async () => {
+  runHttpServer(httpServer);
+}
+
+main();

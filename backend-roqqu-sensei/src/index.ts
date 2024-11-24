@@ -1,10 +1,10 @@
-import {httpServer, runHttpServer} from "./server";
+import {bootstrapApplication} from "./server";
 import {connectToDb} from "./db";
 
 const main = async () => {
   try {
     await connectToDb();
-    runHttpServer(httpServer);
+    bootstrapApplication();
   } catch (err: any) {
     console.log(`failed to start application. error:`, err.message);
   }

@@ -1,31 +1,20 @@
-import {AppConfig} from "./app.config";
+import {AppConfig} from "./appconfig";
 import * as process from "node:process";
 import dotenv from "dotenv";
+import path from "node:path";
 
-dotenv.config();
-
-export const devConfig: AppConfig = {
-  dbUrl: process.env.DB_URL ?? "",
+const loadConfigFileFromEnvironment = () => {
+  const env = process.env.NODE_ENV!;
+  const fileName = (env === "development") ? ".env.development" : (env === "test") ? ".env.test" : ".env"
+  const pathToEnvFile = path.join(__dirname, '..', '..', fileName);
+  dotenv.configDotenv({ path: pathToEnvFile });
 }
 
-export const testConfig: AppConfig = {
-  dbUrl: process.env.DB_URL_TEST ?? "",
-}
-
-export const prodConfig: AppConfig = {
-  dbUrl: process.env.DB_URL ?? ""
-}
-
-export const pickConfigurationFromEnvironment = (): AppConfig => {
-  const configForEnvironment = {
-    development: devConfig,
-    production: devConfig,
-    test: testConfig,
+export const getConfig = (): AppConfig => {
+  loadConfigFileFromEnvironment();
+  const config: AppConfig = {
+    dbUrl: process.env.DB_URL ?? "",
+    port: process.env.PORT ?? "3000",
   }
-  const environment = process.env.NODE_ENV || 'development';
-  return configForEnvironment[environment as keyof typeof configForEnvironment];
-}
-
-export const loadConfigFromEnvironment = () => {
-  // TODO: Read the right .env file and load the configs in it
+  return config;
 }

@@ -1,6 +1,6 @@
-import {pickConfigurationFromEnvironment} from "./environments";
+import {getConfig} from "./environments";
 
-const config = pickConfigurationFromEnvironment();
+const config = getConfig();
 
 console.log({ env: process.env.NODE_ENV, config });
 

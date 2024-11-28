@@ -1,6 +1,6 @@
 import {logToConsole, validateDataWithSchema} from "../common";
 import Joi from "joi";
-import { SocketEvent } from "../server/socket-event";
+import { SocketEvent } from "../server";
 import {Server, Socket} from "socket.io";
 import {addSocketToChatRoom, createChat, sendFirstAutomatedResponse} from "./chat-service";
 import {MessageDto} from "./dtos";

@@ -3,7 +3,7 @@ import {generateUUID, logToConsole} from "../common";
 import {Socket} from "socket.io";
 import {ChatStatus} from "./utils";
 import {MessageDto} from "./dtos";
-import {SocketEvent} from "../server/socket-event";
+import {SocketEvent} from "../server";
 
 export const addSocketToChatRoom = (socket: Socket, chatRoom: string) => {
   return socket.join(chatRoom);

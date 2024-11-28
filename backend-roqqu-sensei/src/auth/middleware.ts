@@ -3,6 +3,7 @@ import {Socket} from "socket.io";
 import {getUserFromToken} from "./authservice";
 import {HttpStatusCode} from "axios";
 import {createErrorResponse} from "../common";
+import {UserDTO} from "./dto";
 
 export const authorizeHttpRequests = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -19,6 +20,7 @@ export const authorizeHttpRequests = async (req: Request, res: Response, next: N
     const user = await getUserFromToken(token);
     if (!user) return res.status(HttpStatusCode.Unauthorized).json('failed to authenticate user');
 
+    req.user = user as UserDTO;
     next();
   } catch (err: any) {
     console.error(`failed to authenticate http Request. error: ${err.message}`);
@@ -39,6 +41,7 @@ export const authorizeSocketRequests = async (socket: Socket, next: (err?: any) 
       return next(new Error('failed to authenticate user'));
     }
 
+    socket.user = user as UserDTO;
     next();
   } catch (err: any) {
     // TODO: If an error is thrown, do not authenticate

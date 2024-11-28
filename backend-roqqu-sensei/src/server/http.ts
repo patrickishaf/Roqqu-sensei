@@ -3,7 +3,7 @@ import http from "node:http";
 import cors from "cors";
 import morganBody from "morgan-body";
 import config from "../config";
-import {messagingRouter} from "../messaging/api";
+import {messagingRouter} from "../messaging/request-handlers";
 import {authorizeHttpRequests} from "../auth/middleware";
 
 export const registerMiddleware = (app: express.Express) => {

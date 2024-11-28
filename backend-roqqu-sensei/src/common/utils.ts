@@ -1,5 +1,6 @@
 import config from "../config";
 import Joi from "joi";
+import {v4} from "uuid";
 
 export const createSuccessResponse = (data: any, message: string = '') => {
   return ({
@@ -32,4 +33,8 @@ export const logToConsole = (message?: any, ...optionalParams: any[]) => {
   if (config.nodeEnv === 'development') {
     console.log(message, ...optionalParams)
   }
+}
+
+export const generateUUID = () => {
+  return v4();
 }

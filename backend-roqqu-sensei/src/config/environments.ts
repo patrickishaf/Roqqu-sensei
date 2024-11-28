@@ -22,3 +22,5 @@ export const getConfig = (): AppConfig => {
   }
   return config;
 }
+
+export const isNodeEnvDevelopment = () => getConfig().nodeEnv === "development";

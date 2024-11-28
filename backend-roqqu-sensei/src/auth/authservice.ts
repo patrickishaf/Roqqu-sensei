@@ -1,21 +1,23 @@
 import {decrypt} from "./encryption";
 import {User} from "../db";
+import {isNodeEnvDevelopment} from "../config/environments";
 
 export const getUserFromToken = async (token: string) => {
-  // TODO: Remove this block of code from every dev environment except the development environment
-  if (token === "demo") {
-    const existingUser = await User.findOne({ email: 'demo@email.com' }).exec();
-    if (!existingUser) {
-      const userModel = new User({
-        firstName: 'Demo',
-        lastName: 'Developer',
-        email: 'demo@email.com',
-        password: 'demo@password',
-      });
-      const user = await userModel.save();
-      return user;
+  if (isNodeEnvDevelopment()) {
+    if (token === "demo") {
+      const existingUser = await User.findOne({ email: 'demo@email.com' }).exec();
+      if (!existingUser) {
+        const userModel = new User({
+          firstName: 'Demo',
+          lastName: 'Developer',
+          email: 'demo@email.com',
+          password: 'demo@password',
+        });
+        const user = await userModel.save();
+        return user;
+      }
+      return existingUser;
     }
-    return existingUser;
   }
 
   const userDetailsJSON = decrypt(token);

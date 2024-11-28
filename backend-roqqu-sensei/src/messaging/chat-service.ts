@@ -1,4 +1,9 @@
-export const getChatsByCustomer = async (customerId: number) => {}
+import {Chat} from "../db";
+
+export const getChatsByCustomer = async (customerEmail: string) => {
+  const chats = await Chat.find({ customerEmail }).exec();
+  return chats;
+}
 
 export const getChatById = async (chatId: number) => {}
 

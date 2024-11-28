@@ -13,8 +13,12 @@ const loadConfigFileFromEnvironment = () => {
 export const getConfig = (): AppConfig => {
   loadConfigFileFromEnvironment();
   const config: AppConfig = {
+    nodeEnv: process.env.NODE_ENV ?? "",
     dbUrl: process.env.DB_URL ?? "",
     port: process.env.PORT ?? "3000",
+    openAiApiKey: process.env.OPENAI_API_KEY ?? "",
+    tokenSecret: process.env.TOKEN_SECRET ?? "",
+    encryptionKey: process.env.ENCRYPTION_KEY ?? "",
   }
   return config;
 }

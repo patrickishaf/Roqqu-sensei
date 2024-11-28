@@ -2,6 +2,6 @@ import {getConfig} from "./environments";
 
 const config = getConfig();
 
-console.log({ env: process.env.NODE_ENV, config });
+console.log({ config });
 
 export default config;

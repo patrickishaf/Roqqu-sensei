@@ -25,6 +25,8 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "@langchain/core": "^0.3.19",
+    "@langchain/groq": "^0.1.2",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

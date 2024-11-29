@@ -3,8 +3,12 @@ import {ChatGroq} from "@langchain/groq";
 
 export const processPrompt = async (input: string) => {
   const rawTemplate = `
-    let me know if this input ({desc}) is a crypto-related question. if it is, reply with "YES" and if it isn't, reply
-    with "NO". Please note that the input must be a question. not a statement.
+    You are an expert system designed to evaluate whether an input is a crypto-related question. When provided with input:
+    1. If it is a crypto-related question, respond with a clear and concise answer.
+    2. If it is not a crypto-related question, respond with just the word NO.
+    Do not add any additional context or explanation. Only reply as instructed.
+    
+    This is the input: "{desc}"
   `;
   const promptTemplate = new PromptTemplate({
     inputVariables: ["desc"],

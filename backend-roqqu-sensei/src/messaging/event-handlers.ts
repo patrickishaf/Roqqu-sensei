@@ -10,6 +10,7 @@ import {
   sendFirstAutomatedResponse
 } from "./chat-service";
 import {MessageDto} from "./dtos";
+import {processPrompt} from "../agent";
 
 export const closeChat = (io: Server, socket: Socket) => {
   return async (data: any) => {
@@ -42,6 +43,9 @@ export const processMessage = (io: Server, socket: Socket) => {
       const chat = await getChatById(message.chatId);
       io.to(chat?.chatRoom!).emit(SocketEvent.msg, message);
       await saveMessageToChat(message, chat?.id);
+
+      const msgContent = await processPrompt(message.content);
+      io.to(chat?.chatRoom!).emit(SocketEvent.msg, msgContent);
     } catch (err: any) {
       logToConsole(`failed to process message. error: ${err.message}`);
       socket.emit(SocketEvent.error, err.message);

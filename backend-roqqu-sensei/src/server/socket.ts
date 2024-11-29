@@ -6,8 +6,6 @@ import {removeSocketFromAllChatRooms} from "../messaging/chat-service";
 
 export enum SocketEvent {
   msg = 'message',
-  joinRoom = 'join_room',
-  leaveRoom = 'leave_room',
   startChat = 'start_chat',
   resumeChat = 'resume_chat',
   closeChat = 'close_chat',
@@ -15,8 +13,6 @@ export enum SocketEvent {
   error = 'error',
   chatClosed = 'chat_closed',
   info = 'info',
-  markAsRead = 'mark_as_read',
-  joinNotificationChannel = 'join_notification_channel',
 }
 
 export const registerSocketMiddleware = (io: Server) => {
@@ -28,7 +24,6 @@ export const registerSocketEventHandlers = (io: Server) => {
     logToConsole('connected to the socket, SOCKET ID:', socket.id);
     socket.on('disconnect', async () => {
       logToConsole('disconnected from socket. SOCKET ID:', socket.id);
-      // TODO: handle disconnect event. maybe leave the chat room or something
       await removeSocketFromAllChatRooms(socket);
     });
 

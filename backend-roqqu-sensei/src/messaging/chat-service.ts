@@ -52,6 +52,14 @@ export const removeSocketFromChatRoom = async (socket: Socket, chatRoom: string)
   return socket.leave(chatRoom);
 }
 
+export const saveMessageToChat = async (message: MessageDto, chatId: string) => {
+  const chat = await Chat.findById(chatId).exec();
+  chat?.messages.push(message);
+  const result = await chat?.save();
+  logToConsole(`saved message ${message} to chat ${chat}`);
+  return result;
+}
+
 export const sendFirstAutomatedResponse = async (socket: Socket, chatId: string) => {
   const automatedMessage: MessageDto = {
     chatId,
@@ -62,12 +70,4 @@ export const sendFirstAutomatedResponse = async (socket: Socket, chatId: string)
   };
   await saveMessageToChat(automatedMessage, chatId);
   socket.emit(SocketEvent.msg, automatedMessage);
-}
-
-export const saveMessageToChat = async (message: MessageDto, chatId: string) => {
-  const chat = await Chat.findById(chatId).exec();
-  chat?.messages.push(message);
-  const result = await chat?.save();
-  logToConsole(`saved message ${message} to chat ${chat}`);
-  return result;
 }

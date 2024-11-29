@@ -1,12 +1,18 @@
 import { AIMessageChunk } from "@langchain/core/messages";
-import { LLMInvokeParams } from "./dto";
+import {LLMInput, LLMInvokeParams} from "./dto";
 import { MessageDto } from "messaging/dtos";
 
-export const convertMessagesToLLMInput = (messages: MessageDto[]) => {
-  const input: LLMInvokeParams = messages.map(({isAutomated, content}) => ({
+
+export const convertSingleMessageToLLMInput = (message: MessageDto) => {
+  const { isAutomated, content } = message;
+  return ({
     role: isAutomated ? 'assistant' : 'user',
     content,
-  }));
+  }) as LLMInput;
+}
+
+export const convertMessagesToLLMInput = (messages: MessageDto[]) => {
+  const input: LLMInvokeParams = messages.map(convertSingleMessageToLLMInput);
   return input;
 }
 
@@ -18,4 +24,12 @@ export const convertAIMessageChunkToMessageDTO = (chunk: AIMessageChunk) => {
     timestamp: new Date(),
   };
   return msg;
+}
+
+export const createConfigFromChatId = (chatId: string) => {
+  return ({
+    configurable: {
+      thread_id: chatId
+    }
+  });
 }

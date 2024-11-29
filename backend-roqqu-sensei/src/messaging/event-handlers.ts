@@ -35,17 +35,28 @@ export const closeChat = (io: Server, socket: Socket) => {
 }
 
 export const processMessage = (io: Server, socket: Socket) => {
-  return async (message: MessageDto) => {
+  return async (incomingMessage: MessageDto) => {
     try {
-      if (message.senderEmail !== socket.user?.email) {
+      const schema = Joi.object({
+        chatId: Joi.string().required(),
+        senderEmail: Joi.string().required(),
+        content: Joi.string().required(),
+        isAutomated: Joi.boolean().required(),
+      });
+      const errorMsg = validateDataWithSchema(incomingMessage, schema);
+      if (errorMsg) {
+        logToConsole('failed to process message chat. error:', errorMsg);
+        throw new Error(`failed to send message. error: ${errorMsg}`);
+      }
+
+      if (incomingMessage.senderEmail !== socket.user?.email) {
         throw new Error(`you are not authorized to send this message. sender email mismatch`);
       }
-      const chat = await getChatById(message.chatId);
-      io.to(chat?.chatRoom!).emit(SocketEvent.msg, message);
-      await saveMessageToChat(message, chat?.id);
+      const chat = await getChatById(incomingMessage.chatId);
+      io.to(chat?.chatRoom!).emit(SocketEvent.msg, incomingMessage);
+      await saveMessageToChat(incomingMessage, chat?.id);
 
-      const messages = await getMessagesInChat(message.chatId);
-      const automatedReply = await processUserInputWithLLM(messages as unknown as MessageDto[]);
+      const automatedReply = await processUserInputWithLLM(incomingMessage);
       await saveMessageToChat(automatedReply as MessageDto, chat?.id);
       io.to(chat?.chatRoom!).emit(SocketEvent.msg, automatedReply);
     } catch (err: any) {

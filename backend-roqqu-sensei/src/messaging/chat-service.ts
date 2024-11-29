@@ -36,6 +36,11 @@ export const getChatById = async (chatId: string) => {
   return await Chat.findById(chatId).exec();
 }
 
+export const getMessagesInChat = async(chatId: string) => {
+  const chat = await getChatById(chatId);
+  return chat?.messages;
+}
+
 export const removeSocketFromAllChatRooms = async (socket: Socket) => {
   const user = socket.user;
   if (!user) return;

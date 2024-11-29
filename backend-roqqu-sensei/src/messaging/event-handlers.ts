@@ -5,12 +5,12 @@ import {Server, Socket} from "socket.io";
 import {
   addSocketToChatRoom,
   createChat,
-  getChatById, removeSocketFromChatRoom,
+  getChatById, getMessagesInChat, removeSocketFromChatRoom,
   saveMessageToChat,
   sendFirstAutomatedResponse
 } from "./chat-service";
 import {MessageDto} from "./dtos";
-import {processPrompt} from "../agent";
+import {processUserInputWithLLM} from "../agent";
 
 export const closeChat = (io: Server, socket: Socket) => {
   return async (data: any) => {
@@ -44,8 +44,10 @@ export const processMessage = (io: Server, socket: Socket) => {
       io.to(chat?.chatRoom!).emit(SocketEvent.msg, message);
       await saveMessageToChat(message, chat?.id);
 
-      const msgContent = await processPrompt(message.content);
-      io.to(chat?.chatRoom!).emit(SocketEvent.msg, msgContent);
+      const messages = await getMessagesInChat(message.chatId);
+      const automatedReply = await processUserInputWithLLM(messages as unknown as MessageDto[]);
+      await saveMessageToChat(automatedReply as MessageDto, chat?.id);
+      io.to(chat?.chatRoom!).emit(SocketEvent.msg, automatedReply);
     } catch (err: any) {
       logToConsole(`failed to process message. error: ${err.message}`);
       socket.emit(SocketEvent.error, err.message);

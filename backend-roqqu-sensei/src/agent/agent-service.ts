@@ -1,5 +1,5 @@
 import { AIMessageChunk } from "@langchain/core/messages";
-import {LLMInput, LLMInvokeParams} from "./dto";
+import {LLMInput} from "./dto";
 import { MessageDto } from "messaging/dtos";
 
 
@@ -9,11 +9,6 @@ export const convertSingleMessageToLLMInput = (message: MessageDto) => {
     role: isAutomated ? 'assistant' : 'user',
     content,
   }) as LLMInput;
-}
-
-export const convertMessagesToLLMInput = (messages: MessageDto[]) => {
-  const input: LLMInvokeParams = messages.map(convertSingleMessageToLLMInput);
-  return input;
 }
 
 export const convertAIMessageChunkToMessageDTO = (chunk: AIMessageChunk) => {

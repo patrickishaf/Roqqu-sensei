@@ -3,16 +3,18 @@ import Joi from "joi";
 import { SocketEvent } from "../server";
 import {Server, Socket} from "socket.io";
 import {
-  addSocketToChatRoom,
+  addSocketToChatRoom, assertChatIsNotSuspended,
   createChat,
-  getChatById, getMessagesInChat, removeSocketFromChatRoom,
+  getChatById,
+  markChatAsSuspended,
+  removeSocketFromChatRoom,
   saveMessageToChat,
   sendFirstAutomatedResponse
 } from "./chat-service";
-import {MessageDto} from "./dtos";
+import {ChatDto, MessageDto} from "./dtos";
 import {processUserInputWithLLM} from "../agent";
 
-export const closeChat = (io: Server, socket: Socket) => {
+export const leaveChat = (io: Server, socket: Socket) => {
   return async (data: any) => {
     try {
       const schema = Joi.object({
@@ -20,13 +22,14 @@ export const closeChat = (io: Server, socket: Socket) => {
       });
       const errorMsg = validateDataWithSchema(data, schema);
       if (errorMsg) {
-        logToConsole('failed to close chat. error:', errorMsg);
+        logToConsole('failed to leave chat. error:', errorMsg);
         throw new Error(errorMsg);
       }
 
       const chat = await getChatById(data.chatId);
+      await markChatAsSuspended(chat as ChatDto);
       await removeSocketFromChatRoom(socket, chat?.chatRoom!);
-      socket.emit(SocketEvent.chatClosed, chat);
+      socket.emit(SocketEvent.leftChat, chat);
     } catch (err: any) {
       logToConsole(`failed to close chat. error: ${err.message}`);
       socket.emit(SocketEvent.error, err.message);
@@ -53,6 +56,7 @@ export const processMessage = (io: Server, socket: Socket) => {
         throw new Error(`you are not authorized to send this message. sender email mismatch`);
       }
       const chat = await getChatById(incomingMessage.chatId);
+      assertChatIsNotSuspended(chat);
       io.to(chat?.chatRoom!).emit(SocketEvent.msg, incomingMessage);
       await saveMessageToChat(incomingMessage, chat?.id);
 

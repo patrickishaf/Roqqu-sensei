@@ -1,19 +1,22 @@
 import {Chat} from "../db";
 import {generateUUID, logToConsole} from "../common";
 import {Socket} from "socket.io";
-import {ChatStatus} from "./utils";
-import {MessageDto} from "./dtos";
+import {ChatDto, ChatStatus, MessageDto} from "./dtos";
 import {SocketEvent} from "../server";
 
 export const addSocketToChatRoom = (socket: Socket, chatRoom: string) => {
   return socket.join(chatRoom);
 }
 
+export const assertChatIsNotSuspended = (chat: any) => {
+  if (chat.status === ChatStatus.suspended) throw new Error('chat is currently suspended');
+}
+
 export const createChat = async (customerEmail: string) => {
   const chatModel = new Chat({
     chatRoom: generateUUID(),
     customerEmail,
-    status: ChatStatus.OPEN,
+    status: ChatStatus.open,
     country: "NIGERIA",
     countryCode: "NG",
     messages: [],
@@ -41,11 +44,16 @@ export const getMessagesInChat = async(chatId: string) => {
   return chat?.messages;
 }
 
+export const markChatAsSuspended = async (chat: ChatDto) => {
+  const suspendedChat = await Chat.findOneAndUpdate({ chatRoom: chat.chatRoom }, { status: ChatStatus.suspended });
+  return suspendedChat;
+}
+
 export const removeSocketFromAllChatRooms = async (socket: Socket) => {
   const user = socket.user;
   if (!user) return;
 
-  const chatsUserIsIn = await Chat.find().where({ customerEmail: user.email }).exec();
+  const chatsUserIsIn = await Chat.find().select('-messages').where({ customerEmail: user.email }).exec();
   logToConsole("chats user is in:", chatsUserIsIn);
   chatsUserIsIn.forEach(chat => {
     socket.leave(chat.chatRoom!);
@@ -61,7 +69,6 @@ export const saveMessageToChat = async (message: MessageDto, chatId: string) => 
   const chat = await Chat.findById(chatId).exec();
   chat?.messages.push(message);
   const result = await chat?.save();
-  logToConsole(`saved message ${message} to chat ${chat}`);
   return result;
 }
 

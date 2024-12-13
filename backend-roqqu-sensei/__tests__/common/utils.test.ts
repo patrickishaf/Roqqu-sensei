@@ -1,4 +1,4 @@
-import {createErrorResponse, createSuccessResponse} from "../../src/common";
+import {convertWordToTitleCase, createErrorResponse, createSuccessResponse} from "../../src/common";
 
 describe('createSuccessResponse', () => {
   it('Should return a valid success response', () => {
@@ -19,3 +19,21 @@ describe('createErrorResponse', () => {
     expect(success.data).toEqual({name: 'Pete'});
   });
 })
+
+describe('convertWordToTitleCase', () => {
+  it('Should convert a single word to title case', () => {
+    const word = 'mirage';
+    const result = convertWordToTitleCase(word);
+    expect(result).toBe('Mirage');
+  });
+  it('Should return an empty string for an empty string', () => {
+    const word = '';
+    const result = convertWordToTitleCase(word);
+    expect(result).toBe('');
+  });
+  it('Should return a capitalized letter string for a string with length 1', () => {
+    const word = 'a';
+    const result = convertWordToTitleCase(word);
+    expect(result).toBe('A');
+  });
+});

@@ -10,5 +10,7 @@ export const processUserInputWithLLM = async (message: MessageDto) => {
   const config = createConfigFromChatId(message.chatId);
   const output = await getChatApp().invoke({ messages: llmInput }, config);
   const latestMessage = output.messages[output.messages.length - 1];
-  return convertAIMessageChunkToMessageDTO(latestMessage);
+  const automatedReply = convertAIMessageChunkToMessageDTO(latestMessage);
+  automatedReply.chatId = message.chatId;
+  return automatedReply;
 }

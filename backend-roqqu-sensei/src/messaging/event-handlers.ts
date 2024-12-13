@@ -1,4 +1,4 @@
-import {logToConsole, validateDataWithSchema} from "../common";
+import {logToConsole, validateSchemaOrThrow} from "../common";
 import Joi from "joi";
 import { SocketEvent } from "../server";
 import {Server, Socket} from "socket.io";
@@ -13,6 +13,8 @@ import {
 } from "./chat-service";
 import {ChatDto, MessageDto} from "./dtos";
 import {processUserInputWithLLM} from "../agent";
+import { addLabelAndTimestampToMessage, generateMessageFromStartChatPayload } from "./message-service";
+import { UserDTO } from "auth";
 
 export const leaveChat = (io: Server, socket: Socket) => {
   return async (data: any) => {
@@ -20,12 +22,7 @@ export const leaveChat = (io: Server, socket: Socket) => {
       const schema = Joi.object({
         chatId: Joi.string().required(),
       });
-      const errorMsg = validateDataWithSchema(data, schema);
-      if (errorMsg) {
-        logToConsole('failed to leave chat. error:', errorMsg);
-        throw new Error(errorMsg);
-      }
-
+      validateSchemaOrThrow(data, schema);
       const chat = await getChatById(data.chatId);
       await markChatAsSuspended(chat as ChatDto);
       await removeSocketFromChatRoom(socket, chat?.chatRoom!);
@@ -46,17 +43,14 @@ export const processMessage = (io: Server, socket: Socket) => {
         content: Joi.string().required(),
         isAutomated: Joi.boolean().required(),
       });
-      const errorMsg = validateDataWithSchema(incomingMessage, schema);
-      if (errorMsg) {
-        logToConsole('failed to process message chat. error:', errorMsg);
-        throw new Error(`failed to send message. error: ${errorMsg}`);
-      }
-
+      validateSchemaOrThrow(incomingMessage, schema);
       if (incomingMessage.senderEmail !== socket.user?.email) {
         throw new Error(`you are not authorized to send this message. sender email mismatch`);
       }
+
       const chat = await getChatById(incomingMessage.chatId);
       assertChatIsNotSuspended(chat);
+      addLabelAndTimestampToMessage(incomingMessage);
       io.to(chat?.chatRoom!).emit(SocketEvent.msg, incomingMessage);
       await saveMessageToChat(incomingMessage, chat?.id);
 
@@ -70,18 +64,13 @@ export const processMessage = (io: Server, socket: Socket) => {
   }
 }
 
-export const resumeChat=  (io: Server, socket: Socket) => {
+export const resumeChat = (io: Server, socket: Socket) => {
   return async(data: any) => {
     try {
       const schema = Joi.object({
         chatId: Joi.string().required(),
       });
-      const errorMsg = validateDataWithSchema(data, schema);
-      if (errorMsg) {
-        logToConsole(`failed to resume chat. error: ${errorMsg}`);
-        throw new Error(errorMsg);
-      }
-
+      validateSchemaOrThrow(data, schema);
       const existingChat = await getChatById(data.chatId);
       if (socket.user?.email !== existingChat?.customerEmail) {
         logToConsole(`failed to resume chat. user with email ${socket.user?.email} is not a member of this chat`);
@@ -102,16 +91,30 @@ export const startChat = (io: Server, socket: Socket) => {
     try {
       const schema = Joi.object({
         email: Joi.string().email().required(),
+        message: Joi.object({
+          senderEmail: Joi.string().required(),
+          content: Joi.string().required(),
+          isAutomated: Joi.boolean().required(),
+        }).optional(),
       });
-      const errorMsg = validateDataWithSchema(data, schema);
-      if (errorMsg) {
-        logToConsole(`bad request. failed to start chat. error: ${errorMsg}`);
-        return socket.emit(SocketEvent.error, errorMsg);
-      }
-
+      validateSchemaOrThrow(data, schema);
       const chat = await createChat(data.email);
       await addSocketToChatRoom(socket, chat.chatRoom!);
-      await sendFirstAutomatedResponse(socket, chat.id);
+      if (!data.message) {
+        await sendFirstAutomatedResponse(socket, chat.id);
+      } else {
+        const userInput = await generateMessageFromStartChatPayload({
+          senderEmail: data.message.senderEmail,
+          content: data.message.content,
+        }, socket.user!, chat.id);
+        io.to(chat.chatRoom!).emit(SocketEvent.msg, userInput);
+        await saveMessageToChat(userInput, chat.id);
+
+        const reply = await processUserInputWithLLM(userInput);
+        await saveMessageToChat(reply as MessageDto, chat.id);
+        
+        io.to(chat.chatRoom!).emit(SocketEvent.msg, reply);
+      }
     } catch (err: any) {
       logToConsole(`failed to start chat. error: ${err.message}`);
       socket.emit(SocketEvent.error, err.message);

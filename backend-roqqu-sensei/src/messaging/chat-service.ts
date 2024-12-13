@@ -17,8 +17,8 @@ export const createChat = async (customerEmail: string) => {
     chatRoom: generateUUID(),
     customerEmail,
     status: ChatStatus.open,
-    country: "NIGERIA",
-    countryCode: "NG",
+    country: 'NIGERIA',
+    countryCode: 'NG',
     messages: [],
   });
   const chat = await chatModel.save();

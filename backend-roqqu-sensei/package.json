@@ -25,6 +25,7 @@
     "typescript": "^5.7.2"
   },
   "dependencies": {
+    "@langchain/community": "^0.3.17",
     "@langchain/core": "^0.3.19",
     "@langchain/groq": "^0.1.2",
     "@langchain/langgraph": "^0.2.23",

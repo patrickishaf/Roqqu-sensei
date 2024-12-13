@@ -38,3 +38,9 @@ export const getUserFromToken = async (token: string) => {
   }
   return existingUser;
 }
+
+export const findUserByEmail = async (email: string) => {
+  const user = await User.findOne({ email }).exec();
+  if (!user) throw new Error('user not found');
+  return user?.toJSON();
+}

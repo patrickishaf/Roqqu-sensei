@@ -3,20 +3,24 @@ import http from "node:http";
 import cors from "cors";
 import morganBody from "morgan-body";
 import config from "../config";
-import {messagingRouter} from "../messaging/request-handlers";
+import {messagingRouter, registerMessagingHandlers} from "../messaging";
 import {authorizeHttpRequests} from "../auth/middleware";
+import { jokesRouter, registerJokesHandlers } from "../jokes";
 
 export const registerMiddleware = (app: express.Express) => {
   app.use(cors({ origin: true }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
   morganBody(app);
-  // @ts-ignore
   app.use(authorizeHttpRequests);
 }
 
 export const registerApiRoutes = (server: express.Express) => {
+  registerMessagingHandlers();
+  registerJokesHandlers();
+
   server.use('/messaging', messagingRouter);
+  server.use('/jokes', jokesRouter);
 }
 
 export const runHttpServer = (server: http.Server) => {

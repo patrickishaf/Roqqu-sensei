@@ -18,7 +18,10 @@ export const authorizeHttpRequests = async (req: Request, res: Response, next: N
       throw new Error("no token present");
     }
     const user = await getUserFromToken(token);
-    if (!user) return res.status(HttpStatusCode.Unauthorized).json('failed to authenticate user');
+    if (!user) {
+      res.status(HttpStatusCode.Unauthorized).json('failed to authenticate user');
+      return;
+    }
 
     req.user = user as UserDTO;
     next();

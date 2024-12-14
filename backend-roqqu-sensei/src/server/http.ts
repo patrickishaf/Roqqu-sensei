@@ -6,11 +6,13 @@ import config from "../config";
 import {messagingRouter, registerMessagingHandlers} from "../messaging";
 import {authorizeHttpRequests} from "../auth/middleware";
 import { jokesRouter, registerJokesHandlers } from "../jokes";
+import { logRequests } from "../log";
 
 export const registerMiddleware = (app: express.Express) => {
   app.use(cors({ origin: true }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
+  app.use(logRequests);
   morganBody(app);
   app.use(authorizeHttpRequests);
 }

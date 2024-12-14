@@ -86,13 +86,22 @@ export const resumeChat = (io: Server, socket: Socket) => {
   }
 }
 
+interface StartChatArgs {
+  email: string,
+  message: {
+    senderEmail?: string;
+    content: string;
+    isAutomated: boolean;
+  }
+}
+
 export const startChat = (io: Server, socket: Socket) => {
-  return async (data: any) => {
+  return async (data: StartChatArgs) => {
     try {
       const schema = Joi.object({
         email: Joi.string().email().required(),
         message: Joi.object({
-          senderEmail: Joi.string().required(),
+          senderEmail: Joi.string().optional(),
           content: Joi.string().required(),
           isAutomated: Joi.boolean().required(),
         }).optional(),
@@ -104,7 +113,7 @@ export const startChat = (io: Server, socket: Socket) => {
         await sendFirstAutomatedResponse(socket, chat.id);
       } else {
         const userInput = await generateMessageFromStartChatPayload({
-          senderEmail: data.message.senderEmail,
+          senderEmail: data.message.senderEmail ?? data.email,
           content: data.message.content,
         }, socket.user!, chat.id);
         io.to(chat.chatRoom!).emit(SocketEvent.msg, userInput);

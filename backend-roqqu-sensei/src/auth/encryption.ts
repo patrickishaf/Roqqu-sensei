@@ -26,12 +26,57 @@ export const encrypt = (str: string) => {
   return encryptedHex.slice(0, 10) + ivHex + encryptedHex.slice(10, encryptedHex.length);
 }
 
-export const decrypt = (hash: string) => {
-  const iv = hash.slice(10, 42);
-  const content = hash.slice(0, 10) + hash.slice(42, hash.length);
+function hexToUint8Array(hexString: string) {
+  const length = hexString.length / 2;
+  const byteArray = new Uint8Array(length);
+  for (let i = 0; i < length; i++) {
+    byteArray[i] = parseInt(hexString.substr(i * 2, 2), 16);
+  }
+  return byteArray;
+}
 
-  const decipher = createDecipheriv('aes-256-ctr', config.encryptionKey as CipherKey, Buffer.from(iv, 'hex'));
-  const decrypted = Buffer.concat([decipher.update(Buffer.from(content, 'hex')), decipher.final()]);
+export const decryptWithAES = async (key: string, encryptedText: string) => {
+  try {
+    const keyBytes = new TextEncoder().encode(
+      key.padEnd(32, '0').substring(0, 32),
+    );
 
-  return decrypted.toString();
+    const parts = encryptedText.split(':');
+    if (parts.length !== 2) {
+      throw new Error('Invalid encrypted data format');
+    }
+
+    const encryptedDataHex = parts[0];
+    const ivHex = parts[1];
+
+    const iv = hexToUint8Array(ivHex);
+    const encryptedBody = hexToUint8Array(encryptedDataHex);
+
+    // Import the encryption key
+    const cryptoKey = await crypto.subtle.importKey(
+      'raw',
+      keyBytes,
+      { name: 'AES-CTR' },
+      false,
+      ['decrypt'],
+    );
+
+    // Decrypt the data
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      {
+        name: 'AES-CTR',
+        counter: iv, // Counter is now correctly handled as Base16 hex
+        length: 64, // Make sure this matches the counter length used during encryption
+      },
+      cryptoKey,
+      encryptedBody,
+    );
+
+    // Convert decrypted data to string
+    const decryptedText = new TextDecoder().decode(decryptedBuffer);
+    return decryptedText;
+  } catch (error) {
+    console.error('Decryption failed: ', error);
+    throw error;
+  }
 }

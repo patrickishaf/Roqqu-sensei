@@ -1,6 +1,7 @@
-import {decrypt} from "./encryption";
+import {decryptWithAES} from "./encryption";
 import {User} from "../db";
 import {isNodeEnvDevelopment} from "../config/environments";
+import config from "../config";
 
 export const getUserFromToken = async (token: string) => {
   if (isNodeEnvDevelopment()) {
@@ -20,7 +21,7 @@ export const getUserFromToken = async (token: string) => {
     }
   }
 
-  const userDetailsJSON = decrypt(token);
+  const userDetailsJSON = await decryptWithAES(config.encryptionKey, token);
   const userDetailsObject = JSON.parse(userDetailsJSON);
   const existingUser = await User.findOne({ email: userDetailsObject.email }).exec();
   if (!existingUser) {

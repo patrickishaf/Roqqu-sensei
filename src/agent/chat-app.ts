@@ -5,11 +5,11 @@ import {
   StateGraph,
   MemorySaver, CompiledStateGraph, StateType, StateDefinition, UpdateType,
 } from '@langchain/langgraph';
-import { ChatGroq } from '@langchain/groq';
 import {ChatPromptTemplate, MessagesPlaceholder} from "@langchain/core/prompts";
+import { ChatOpenAI } from '@langchain/openai';
 
-const llm = new ChatGroq({
-  model: "mixtral-8x7b-32768",
+const llm = new ChatOpenAI({
+  model: 'gpt-4o-mini',
   temperature: 0,
 });
 
@@ -17,7 +17,7 @@ let chatApp: CompiledStateGraph<StateType<StateDefinition> | unknown extends Sta
 
 export const getChatApp = () => chatApp;
 
-const createChatApp = (llm: ChatGroq) => {
+const createChatApp = (llm: ChatOpenAI) => {
   const promptTemplate = ChatPromptTemplate.fromMessages([
     [
       "system",

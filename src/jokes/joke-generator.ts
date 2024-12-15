@@ -1,10 +1,11 @@
 import { StringOutputParser } from "@langchain/core/output_parsers";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatGroq } from "@langchain/groq";
+import { ChatOpenAI } from "@langchain/openai";
 
 export const generateJokes = async (count: number = 10) => {
-  const model = new ChatGroq({
-    model: 'mixtral-8x7b-32768',
+  const model = new ChatOpenAI({
+    model: 'gpt-4o-mini',
     temperature: 0,
   });
   

@@ -139,3 +139,5 @@ logs/*
 *.log
 .fleet
 .fleet/
+
+.DS_Store
